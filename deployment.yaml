@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admission-controller
+  labels:
+    app: admission-controller
+    service: admission-controller-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admission-controller
+      service: admission-controller-service
+  template:
+    metadata:
+      labels:
+        app: admission-controller
+        service: admission-controller-service
+    spec:
+      containers:
+        - name: admission-controller
+          image: localhost:5000/admission-controller:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8443
+          command: ["sh", "-c", "cd /usr/local/bin && chmod 777 admission-controller && ls -l . && ./admission-controller"]
+          volumeMounts:
+          - name: admission-controller-cert
+            mountPath: /cert
+          env:
+          - name: SSL_CRT_FILE_NAME
+            value: "/cert/server.crt"
+          - name: SSL_KEY_FILE_NAME
+            value: "/cert/server.key"
+      volumes:
+      - name: admission-controller-cert
+        configMap:
+          name: admission-controller-cert
